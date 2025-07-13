@@ -1,6 +1,7 @@
 # archivo: main.py
 
-from juego-base-persona1.tablero import Tablero
+from juego_base_persona1.tablero import Tablero
+
 
 def coordenada_a_indices(coord):
     letras = 'abcdefgh'
