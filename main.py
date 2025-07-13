@@ -2,7 +2,6 @@
 
 from juego_base_persona1.tablero import Tablero
 
-
 def coordenada_a_indices(coord):
     letras = 'abcdefgh'
     try:
