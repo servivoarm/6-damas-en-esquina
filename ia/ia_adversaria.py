@@ -121,3 +121,4 @@ class IA:
         nuevo = Tablero()
         nuevo.tablero = [fila.copy() for fila in tablero.tablero]
         return nuevo
+

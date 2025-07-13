@@ -47,3 +47,4 @@ class ControlTurnos:
             'destino': destino,
             'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         })
+
