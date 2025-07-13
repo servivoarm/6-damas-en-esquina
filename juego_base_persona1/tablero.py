@@ -24,53 +24,52 @@ class Tablero:
             print(f"{8 - i} " + ' '.join(fila) + f" {8 - i}")
         print("  a b c d e f g h")
 
-    def es_movimiento_valido(self, origen, destino, color):
-        fila_origen, col_origen = origen
-        fila_destino, col_destino = destino
+    def es_valido(self, origen, destino, color, verbose=False):  # Cambiar verbose=False por defecto
+        fila_o, col_o = origen
+        fila_d, col_d = destino
 
-        # Verifica que destino esté dentro del tablero
-        if not (0 <= fila_destino < self.filas and 0 <= col_destino < self.columnas):
+        # Validaciones silenciosas (sin prints)
+        if not (0 <= fila_o < 8 and 0 <= col_o < 8 and 0 <= fila_d < 8 and 0 <= col_d < 8):
+            return False
+        if self.tablero[fila_o][col_o] != color or self.tablero[fila_d][col_d] != '.':
             return False
 
-        # El destino debe estar vacío
-        if self.tablero[fila_destino][col_destino] != '.':
+        delta_fila = fila_d - fila_o
+        delta_col = col_d - col_o
+
+        if abs(delta_col) != abs(delta_fila) or abs(delta_fila) not in (1, 2):
+            return False
+        if (color == 'R' and delta_fila <= 0) or (color == 'N' and delta_fila >= 0):
             return False
 
-        # Movimiento diagonal (1 o 2 espacios)
-        delta_fila = fila_destino - fila_origen
-        delta_col = col_destino - col_origen
+        return True  # Todas las validaciones pasaron
 
-        if abs(delta_col) != abs(delta_fila):
-            return False
-        if abs(delta_fila) not in (1, 2):
+    def mover_ficha(self, origen, destino):
+        if not self.es_valido(origen, destino, self.tablero[origen[0]][origen[1]]):
             return False
 
-        # Dirección correcta según color
-        if color == 'R' and delta_fila <= 0:
-            return False
-        if color == 'N' and delta_fila >= 0:
-            return False
-
+        # Movimiento silencioso
+        ficha = self.tablero[origen[0]][origen[1]]
+        self.tablero[destino[0]][destino[1]] = ficha
+        self.tablero[origen[0]][origen[1]] = '.'
         return True
 
     def mover_ficha(self, origen, destino):
-        fila_origen, col_origen = origen
-        fila_destino, col_destino = destino
-
-        ficha = self.tablero[fila_origen][col_origen]
+        fila_o, col_o = origen
+        ficha = self.tablero[fila_o][col_o]
 
         if ficha not in ('R', 'N'):
-            print("No hay ficha del jugador en la posición origen.")
+            print("❌ No hay ficha seleccionable en la casilla de origen.")
             return False
 
-        if not self.es_movimiento_valido(origen, destino, ficha):
-            print("Movimiento inválido.")
+        if not self.es_valido(origen, destino, ficha, verbose=False):
+            print("⚠️ Movimiento no permitido.")
             return False
 
-        # Realiza el movimiento
-        self.tablero[fila_destino][col_destino] = ficha
-        self.tablero[fila_origen][col_origen] = '.'
-        print(f"Ficha {ficha} movida de {origen} a {destino}")
+        # Movimiento válido
+        fila_d, col_d = destino
+        self.tablero[fila_d][col_d] = ficha
+        self.tablero[fila_o][col_o] = '.'
         return True
 
     def hay_ganador(self):
