@@ -90,16 +90,6 @@ class Game:
         spacing = 20
         start_y = (HEIGHT - (3 * btn_h + 2 * spacing)) // 2 + 80
 
-        def set_mode_h_i(): self.start_game('HUMANO_IA')
-        def set_mode_h_h(): self.start_game('HUMANO_HUMANO')
-        def set_mode_i_i(): self.start_game('IA_IA')
-
-        self.buttons = [
-            Button((WIDTH//2 - btn_w//2, start_y, btn_w, btn_h), "Humano vs IA", set_mode_h_i),
-            Button((WIDTH//2 - btn_w//2, start_y + btn_h + spacing, btn_w, btn_h), "Humano vs Humano", set_mode_h_h),
-            Button((WIDTH//2 - btn_w//2, start_y + 2*(btn_h + spacing), btn_w, btn_h), "IA vs IA", set_mode_i_i),
-        ]
-
     def start_game(self, mode):
         self.mode = mode
         self.in_menu = False
