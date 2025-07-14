@@ -26,6 +26,7 @@ MOVE_SOUND_PATH = "assets/sound/move.wav"
 DROP_SOUND_PATH = "assets/sound/drop.wav"
 CUSTOM_FONT_PATH = "assets/fonts/8bitoperator_jve.ttf"
 
+
 class Button:
     def __init__(self, rect, text, callback):
         self.rect = pygame.Rect(rect)
@@ -44,6 +45,7 @@ class Button:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if self.rect.collidepoint(event.pos):
                 self.callback()
+
 
 class Game:
     def __init__(self):
@@ -83,12 +85,23 @@ class Game:
         pygame.mixer.music.set_volume(0.18)
         pygame.mixer.music.play(-1)
 
-
-
     def setup_menu(self):
         btn_w, btn_h = 300, 60
         spacing = 20
         start_y = (HEIGHT - (3 * btn_h + 2 * spacing)) // 2 + 80
+
+        def set_mode_h_i(): self.start_game('HUMANO_IA')
+
+        def set_mode_h_h(): self.start_game('HUMANO_HUMANO')
+
+        def set_mode_i_i(): self.start_game('IA_IA')
+
+        self.buttons = [
+            Button((WIDTH // 2 - btn_w // 2, start_y, btn_w, btn_h), "Humano vs IA", set_mode_h_i),
+            Button((WIDTH // 2 - btn_w // 2, start_y + btn_h + spacing, btn_w, btn_h), "Humano vs Humano",
+                   set_mode_h_h),
+            Button((WIDTH // 2 - btn_w // 2, start_y + 2 * (btn_h + spacing), btn_w, btn_h), "IA vs IA", set_mode_i_i),
+        ]
 
     def start_game(self, mode):
         self.mode = mode
@@ -106,8 +119,8 @@ class Game:
     def setup_end_buttons(self):
         btn_w, btn_h = 200, 50
         spacing = 20
-        x = WIDTH//2 - btn_w//2
-        y = HEIGHT//2 + 20
+        x = WIDTH // 2 - btn_w // 2
+        y = HEIGHT // 2 + 20
 
         def volver():
             self.in_menu = True
@@ -141,28 +154,42 @@ class Game:
                 pygame.draw.rect(self.screen, color, (x, y, CELL_SIZE, CELL_SIZE))
                 pieza = self.tablero.tablero[row][col]
                 if pieza in ('R', 'N'):
-                    center = (x + CELL_SIZE//2, y + CELL_SIZE//2)
-                    radius = CELL_SIZE//2 - 5
+                    center = (x + CELL_SIZE // 2, y + CELL_SIZE // 2)
+                    radius = CELL_SIZE // 2 - 5
                     pygame.draw.circle(self.screen, RED if pieza == 'R' else BLACK, center, radius)
         if self.selected:
             x = MARGIN + self.selected[1] * CELL_SIZE
             y = MARGIN + self.selected[0] * CELL_SIZE
             pygame.draw.rect(self.screen, RED, (x, y, CELL_SIZE, CELL_SIZE), 3)
-        turno_text = f"Turno: {'Rojo' if self.control.turno_actual=='R' else 'Negro'}"
+        turno_text = f"Turno: {'Rojo' if self.control.turno_actual == 'R' else 'Negro'}"
         self.screen.blit(self.font_28.render(turno_text, True, BLACK), (MARGIN, 10))
         self.draw_back_button()
-
         pygame.display.flip()
 
     def draw_end_screen(self):
         self.screen.fill(BLUE_BG)
         text = "Empate por bloqueo!" if self.winner is None else f"¡{self.winner} ha ganado!"
         surf = self.font_48.render(text, True, BLACK)
-        rect = surf.get_rect(center=(WIDTH//2, HEIGHT//2 - 40))
+        rect = surf.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 40))
         self.screen.blit(surf, rect)
         for btn in self.end_buttons:
             btn.draw(self.screen)
         pygame.display.flip()
+
+    def draw_back_button(self):
+        btn_w, btn_h = 200, 40
+        x, y = WIDTH - btn_w - 20, 10
+
+        def volver():
+            self.in_menu = True
+            self.setup_menu()
+
+        self.back_button = Button((x, y, btn_w, btn_h), "Volver al menú", volver)
+        self.back_button.draw(self.screen)
+
+    def handle_back_button_event(self, event):
+        if hasattr(self, 'back_button'):
+            self.back_button.handle_event(event)
 
     def handle_menu_events(self):
         for event in pygame.event.get():
@@ -188,14 +215,14 @@ class Game:
                         self.move_sound.play()
                         self.turnos_sin_movimiento = 0
                         if self.tablero.hay_ganador():
-                            self.winner = 'Rojo' if self.control.turno_actual=='R' else 'Negro'
+                            self.winner = 'Rojo' if self.control.turno_actual == 'R' else 'Negro'
                             self.game_over = True
                         else:
                             self.control.cambiar_turno()
                     self.selected = None
 
     def handle_ai_turn(self):
-        ia = self.ia_roja if self.control.turno_actual=='R' else self.ia_negra
+        ia = self.ia_roja if self.control.turno_actual == 'R' else self.ia_negra
         if ia:
             movimiento = ia.mejor_movimiento(self.tablero)
             if movimiento is None:
@@ -214,7 +241,7 @@ class Game:
                 self.move_sound.play()
                 self.turnos_sin_movimiento = 0
                 if self.tablero.hay_ganador():
-                    self.winner = 'Rojo' if self.control.turno_actual=='R' else 'Negro'
+                    self.winner = 'Rojo' if self.control.turno_actual == 'R' else 'Negro'
                     self.game_over = True
                     self.setup_end_buttons()
                 else:
@@ -228,8 +255,9 @@ class Game:
                 self.draw_menu()
             elif self.game_over:
                 for event in pygame.event.get():
-                    if event.type==pygame.QUIT:
-                        pygame.quit(); sys.exit()
+                    if event.type == pygame.QUIT:
+                        pygame.quit();
+                        sys.exit()
                     for btn in self.end_buttons:
                         btn.handle_event(event)
                 self.draw_end_screen()
@@ -239,28 +267,13 @@ class Game:
                     self.draw_board()
                     continue
                 for event in pygame.event.get():
-                    if event.type==pygame.QUIT:
-                        pygame.quit(); sys.exit()
+                    if event.type == pygame.QUIT:
+                        pygame.quit();
+                        sys.exit()
                     self.handle_human_event(event)
                     self.handle_back_button_event(event)
                 self.draw_board()
 
-    def draw_back_button(self):
-        btn_w, btn_h = 200, 40
-        x, y = WIDTH - btn_w - 20, 10
 
-        def volver():
-            self.in_menu = True
-            self.setup_menu()
-
-
-        self.back_button = Button((x, y, btn_w, btn_h), "Volver al menú", volver)
-        self.back_button.draw(self.screen)
-
-    def handle_back_button_event(self, event):
-        if hasattr(self, 'back_button'):
-            self.back_button.handle_event(event)
-
-
-if __name__=='__main__':
+if __name__ == '__main__':
     Game().run()
